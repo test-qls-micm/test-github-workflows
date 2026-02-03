@@ -98,6 +98,7 @@ jobs:
             const latestLink = allLinks.length > 0 ? allLinks[allLinks.length - 1] : '';
 
             const prMatch = latestLink.match(/https?:\/\/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/i);
+            const repoMatch = latestLink.match(/https?:\/\/github\.com\/([^/]+)\/([^/]+)\/?$/i);
 
             if (!latestLink) {
               const body = applyTemplate(noLinkTemplate, '') || 'Please add a GitHub link to your PR or GitHub page.';
@@ -157,6 +158,39 @@ jobs:
                 repo,
                 issue_number: Number(pullNumber),
                 body: reviewBody
+              });
+
+              return;
+            }
+
+            if (repoMatch) {
+              const [, targetOwner, targetRepo] = repoMatch;
+              const generalBody = guidelines
+                ? `Copilot review started. General guidance (from guidelines.md):\n\n${guidelines}`
+                : 'Copilot review started. No guidelines.md found.';
+
+              let externalIssueUrl = '';
+              try {
+                const created = await github.rest.issues.create({
+                  owner: targetOwner,
+                  repo: targetRepo,
+                  title: 'Copilot review: general guidance',
+                  body: generalBody
+                });
+                externalIssueUrl = created.data?.html_url || '';
+              } catch (error) {
+                core.warning(`Unable to create issue on ${targetOwner}/${targetRepo}: ${error.message}`);
+              }
+
+              const body = externalIssueUrl
+                ? `Found GitHub repo link: ${latestLink}. Started Copilot review and opened an issue: ${externalIssueUrl}`
+                : `Found GitHub repo link: ${latestLink}. Could not open an issue there (permissions may be missing).`;
+
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body
               });
 
               return;

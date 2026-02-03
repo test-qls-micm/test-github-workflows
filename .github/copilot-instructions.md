@@ -8,7 +8,7 @@ We are starting the Copilot review process now. If the link is incorrect, please
 ## NON_PR_COMMENT
 Thanks for the submission! We found this GitHub link: {{link}}.
 
-Please open a pull request for your changes and update this issue with the PR link so we can start the Copilot review process.
+If this is a repository link, we will open a Copilot review issue on that repository using the guidelines in .github/guidelines.md. If it's not a repository or we lack permission, please open a pull request for your changes and update this issue with the PR link so we can start the Copilot review process.
 
 ## NO_LINK_COMMENT
 Thanks for the submission!
