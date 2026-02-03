@@ -3,6 +3,8 @@ name: Issue Copilot Routing
 on:
   issues:
     types: [opened]
+  issue_comment:
+    types: [created]
 
 permissions:
   issues: write
@@ -53,8 +55,42 @@ jobs:
             const noLinkTemplate = getSection(instructions, 'NO_LINK_COMMENT');
 
             const linkRegex = /https?:\/\/github\.com\/[^\s)\]]+/gi;
-            const links = issueBody.match(linkRegex) || [];
-            const latestLink = links.length > 0 ? links[links.length - 1] : '';
+
+            const allTexts = [];
+            if (issueBody) {
+              allTexts.push({
+                createdAt: issue.created_at || '1970-01-01T00:00:00Z',
+                body: issueBody
+              });
+            }
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              per_page: 100
+            });
+
+            for (const comment of comments) {
+              if (comment.body) {
+                allTexts.push({
+                  createdAt: comment.created_at || '1970-01-01T00:00:00Z',
+                  body: comment.body
+                });
+              }
+            }
+
+            allTexts.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+
+            const allLinks = [];
+            for (const entry of allTexts) {
+              const matches = entry.body.match(linkRegex) || [];
+              for (const match of matches) {
+                allLinks.push(match);
+              }
+            }
+
+            const latestLink = allLinks.length > 0 ? allLinks[allLinks.length - 1] : '';
 
             const prMatch = latestLink.match(/https?:\/\/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/i);
 
