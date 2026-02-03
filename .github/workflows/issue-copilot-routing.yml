@@ -34,6 +34,11 @@ jobs:
               ? fs.readFileSync(instructionsPath, 'utf8')
               : '';
 
+            const guidelinesPath = path.join(process.cwd(), '.github', 'guidelines.md');
+            const guidelines = fs.existsSync(guidelinesPath)
+              ? fs.readFileSync(guidelinesPath, 'utf8').trim()
+              : '';
+
             const getSection = (content, header) => {
               const pattern = new RegExp(`^##\\s+${header}\\s*$`, 'm');
               const match = content.match(pattern);
@@ -108,6 +113,9 @@ jobs:
             if (prMatch) {
               const [, owner, repo, pullNumber] = prMatch;
               const body = applyTemplate(prTemplate, latestLink) || `Found PR link: ${latestLink}. Starting Copilot review.`;
+              const reviewBody = guidelines
+                ? `Copilot review started. The review will follow these guidelines:\n\n${guidelines}`
+                : 'Copilot review started. No guidelines.md found.';
 
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
@@ -148,7 +156,7 @@ jobs:
                 owner,
                 repo,
                 issue_number: Number(pullNumber),
-                body
+                body: reviewBody
               });
 
               return;
