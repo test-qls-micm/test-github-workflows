@@ -18,6 +18,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Check PAT secret presence
+        run: |
+          if [ -z "${{ secrets.CROSS_REPO_TOKEN }}" ]; then
+            echo "CROSS_REPO_TOKEN is NOT set"
+            exit 1
+          fi
+          echo "CROSS_REPO_TOKEN is set"
+
       - name: Route issue to Copilot or guidance
         uses: actions/github-script@v7
         with:
