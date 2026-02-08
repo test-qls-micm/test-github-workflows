@@ -1,16 +1,49 @@
-# Copilot Issue Routing Instructions
+Consider the workshop review criteria under .github/workshop-review-instructions.md, but use this guideline as the gold standard for workshops.
 
-## PR_COMMENT
-Thanks for the submission! We found your pull request link: {{link}}
+## Project Overview
+This repository contains hands-on workshops for teaching [your topic].
+Each workshop should be self-contained, beginner-friendly, and follow consistent patterns.
 
-We are starting the Copilot review process now. If the link is incorrect, please update the issue with the correct PR URL.
+## When Reviewing Pull Requests
 
-## NON_PR_COMMENT
-Thanks for the submission! We found this GitHub link: {{link}}
+### Required Checks
+- **README.md** must exist in every workshop directory
+- **exercises/** directory must contain numbered exercises (01-*, 02-*, etc.)
+- **solutions/** directory must mirror exercises structure
+- Each exercise must have clear learning objectives stated upfront
 
-If this is a repository link, we will open a Copilot review issue on that repository using the guidelines in .github/guidelines.md. If it's not a repository or we lack permission, please open a pull request for your changes and update this issue with the PR link so we can start the Copilot review process.
+### Code Quality Standards
+- All code examples must run without errors
+- Use consistent naming conventions: snake_case for files, camelCase for variables
+- Include comments explaining non-obvious steps
+- No hardcoded credentials or API keys
 
-## NO_LINK_COMMENT
-Thanks for the submission!
+### Workshop Structure
+Each workshop must contain:
+- Learning objectives (bullet points at top of README)
+- Estimated time to complete
+- Prerequisites section
+- Step-by-step instructions with code blocks
+- Expected output examples
+- Common troubleshooting section
 
-We could not find a GitHub link in your issue. Please add the latest link to your PR (preferred) or your GitHub page so we can proceed.
+### Content Quality
+- Difficulty should progress gradually (beginner → intermediate)
+- Explanations should assume minimal prior knowledge
+- Use analogies and real-world examples
+- Avoid jargon without definitions
+
+### Testing Requirements
+- All Python examples must include type hints
+- All code must pass linting (flake8)
+- Solutions must be tested before merge
+
+## Anti-patterns to Flag
+❌ Copy-pasted code without explanation
+❌ Missing error handling in examples
+❌ Incomplete exercises (no solution provided)
+❌ Inconsistent formatting across workshops
+❌ External dependencies without installation instructions
+```
+
+Include checks for learning objectives, code quality, beginner-friendliness, and consistent structure.
