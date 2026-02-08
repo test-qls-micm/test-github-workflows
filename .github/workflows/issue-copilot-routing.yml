@@ -37,6 +37,29 @@ jobs:
             const issue = context.payload.issue;
             const issueNumber = issue.number;
             const issueBody = issue.body || '';
+            const comment = context.payload.comment;
+            const routedLabel = 'copilot-routed';
+            const completedLabels = new Set(['copilot-review', routedLabel]);
+
+            if (comment && comment.user?.login === 'github-actions[bot]') {
+              core.info('Skipping: bot-authored comment.');
+              return;
+            }
+
+            const issueDetails = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber
+            });
+
+            const existingLabels = (issueDetails.data.labels || [])
+              .map((label) => (typeof label === 'string' ? label : label.name))
+              .filter(Boolean);
+
+            if (existingLabels.some((label) => completedLabels.has(label))) {
+              core.info('Skipping: issue already routed.');
+              return;
+            }
 
             const instructionsPath = path.join(process.cwd(), '.github', 'copilot-instructions.md');
             const instructions = fs.existsSync(instructionsPath)
@@ -162,6 +185,33 @@ jobs:
                 }
               }
 
+              try {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  labels: [routedLabel]
+                });
+              } catch (error) {
+                try {
+                  await github.rest.issues.createLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    name: routedLabel,
+                    color: '0e8a16',
+                    description: 'Copilot review routed'
+                  });
+                  await github.rest.issues.addLabels({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issueNumber,
+                    labels: [routedLabel]
+                  });
+                } catch (innerError) {
+                  core.warning(`Unable to add label ${routedLabel}: ${innerError.message}`);
+                }
+              }
+
               await github.rest.issues.createComment({
                 owner,
                 repo,
@@ -201,6 +251,33 @@ jobs:
                 issue_number: issueNumber,
                 body
               });
+
+              try {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  labels: [routedLabel]
+                });
+              } catch (error) {
+                try {
+                  await github.rest.issues.createLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    name: routedLabel,
+                    color: '0e8a16',
+                    description: 'Copilot review routed'
+                  });
+                  await github.rest.issues.addLabels({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issueNumber,
+                    labels: [routedLabel]
+                  });
+                } catch (innerError) {
+                  core.warning(`Unable to add label ${routedLabel}: ${innerError.message}`);
+                }
+              }
 
               return;
             }
